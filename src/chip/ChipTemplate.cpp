@@ -10,6 +10,10 @@ namespace Gateway {
         fullCircuit->subset(&circuit, subset);
     }
 
+    void ChipTemplate::compile() {
+        std::unordered_map<int, int> compToSig;
 
+
+    }
 
 } // Gateway
