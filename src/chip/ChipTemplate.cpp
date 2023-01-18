@@ -6,14 +6,8 @@
 
 namespace Gateway {
 
-    ChipTemplate::ChipTemplate(Circuit* fullCircuit, std::vector<int>& subset) {
-        fullCircuit->subset(&circuit, subset);
-    }
-
-    void ChipTemplate::compile() {
-        std::unordered_map<int, int> compToSig;
-
-
+    ChipTemplate::ChipTemplate(Circuit& fullCircuit, std::vector<int>& subset) : sim(ChipSim(fullCircuit)){
+        fullCircuit.subset(&circuit, subset);
     }
 
 } // Gateway

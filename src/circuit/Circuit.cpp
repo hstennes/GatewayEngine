@@ -10,6 +10,7 @@ namespace Gateway {
     int Circuit::addComp(CompType type, int x, int y) {
         int id = nextId();
         components.emplace_back(type, id, x, y);
+        usedIds.push_back(id);
         return id;
     }
 

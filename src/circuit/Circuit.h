@@ -16,6 +16,8 @@ namespace Gateway {
 
         std::vector<int> freeIds;
 
+        std::vector<int> usedIds;
+
         int maxId = -1;
 
     public:

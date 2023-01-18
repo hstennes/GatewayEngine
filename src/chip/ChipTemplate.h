@@ -6,17 +6,17 @@
 #define GATEWAYENGINE_CHIPTEMPLATE_H
 
 #include "../circuit/Circuit.h"
-#include "NodeBox.h"
+#include "ChipSim.h"
 
 namespace Gateway {
 
     class ChipTemplate {
     public:
         Circuit circuit;
-        NodeBox nodeBox;
+        ChipSim sim;
 
     public:
-        ChipTemplate(Circuit* fullCircuit, std::vector<int>& subset);
+        ChipTemplate(Circuit& fullCircuit, std::vector<int>& subset);
 
         void compile();
     };

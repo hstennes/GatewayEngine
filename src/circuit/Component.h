@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include "Pin.h"
 #include "CompType.h"
+#include "../chip/ChipTemplate.h"
 
 namespace Gateway {
 
@@ -23,6 +24,11 @@ namespace Gateway {
         std::vector<Pin> inputs;
 
         std::vector<Pin> outputs;
+
+        //TODO these could be refactored into a ComponentInfo object
+        ChipTemplate* chipTemplate;
+
+        std::vector<int> split;
 
         Component(CompType type, int id, int x, int y);
 
