@@ -6,6 +6,8 @@
 #include "../chip/ActiveStack.h"
 #include <stack>
 #include <array>
+#include <unordered_set>
+#include <chrono>
 
 int main() {
     using namespace Gateway;
@@ -83,15 +85,15 @@ int main() {
 
 //    std::cout << "starting" << std::endl;
 //
-    class A {
-    public:
-        int one;
-    };
-
-    class B : public A {
-    public:
-        int two;
-    };
+//    class A {
+//    public:
+//        int one;
+//    };
+//
+//    class B : public A {
+//    public:
+//        int two;
+//    };
 //
 //    A a;
 //    a.one = 5;
@@ -125,11 +127,37 @@ int main() {
 //    stuff2[7] = 10;
 //    std::cout << "a;sdlfkj" << std::endl;
 
-    A* myObject = new B();
-    myObject->one = 6;
-    B* cast = (B*) myObject;
-    cast->two = 5;
-    std::cout << "a;dslfkj" << std::endl;
+//    A* myObject = new B();
+//    myObject->one = 6;
+//    B* cast = (B*) myObject;
+//    cast->two = 5;
+//    std::cout << "a;dslfkj" << std::endl;
+
+    std::unordered_set<int> stuff;
+    std::vector<int> stuff2;
+
+    for(int i = 0; i < 1000000; i++) {
+        stuff.insert(i);
+        stuff2.push_back(i);
+    }
+
+    auto start = std::chrono::high_resolution_clock::now();
+    int total = 0;
+    for(int i : stuff2) {
+        total += i;
+    }
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    std::cout << duration.count() << std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+    total = 0;
+    for(int i : stuff) {
+        total += i;
+    }
+    stop = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    std::cout << duration.count() << std::endl;
 
     return 0;
 

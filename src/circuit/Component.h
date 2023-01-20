@@ -8,8 +8,8 @@
 #include <unordered_map>
 #include "Pin.h"
 #include "CompType.h"
-#include "../chip/ChipTemplate.h"
 
+class ChipTemplate;
 namespace Gateway {
 
     class Component {
