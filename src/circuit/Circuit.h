@@ -11,6 +11,25 @@
 namespace Gateway {
 
     class Circuit {
+    public:
+        struct Iterator
+        {
+            Iterator(Circuit* circuit, int index) : circuit(circuit), index(index) {}
+
+            Component& operator*() const { return circuit->components[circuit->usedIds[index]];  }
+            Iterator& operator++() { index++; return *this; }
+            Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
+            friend bool operator==(const Iterator& a, const Iterator& b) { return a.index == b.index; }
+            friend bool operator!=(const Iterator& a, const Iterator& b) { return a.index != b.index; }
+
+        private:
+            Circuit* circuit;
+            int index;
+        };
+
+        Iterator begin() { return {this, 0}; }
+        Iterator end()   { return {this, (int) usedIds.size()}; }
+
     private:
         std::vector<Component> components;
 

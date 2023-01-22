@@ -16,6 +16,10 @@ namespace Gateway {
 
     void Circuit::removeComp(int id) {
         freeIds.push_back(id);
+        auto it = std::find(usedIds.begin(), usedIds.end(), id);
+        if (it != usedIds.end()) {
+            usedIds.erase(it);
+        }
     }
 
     Component& Circuit::getComp(int id) {
