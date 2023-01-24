@@ -12,33 +12,55 @@ namespace Gateway {
     }
 
     void ChipSim::compile(Circuit& circuit) {
-
-        /*
-         * How it works in OG Gateway:
-         *
-         * nodeComps starts with all switches in the order that input connections are considered. These become StartNodes,
-         * which do essentially nothing besides mark their outputs if update is called. This has the effect of making the first
-         * few signals in the signals array the "input signals" to the circuit.
-         *
-         */
-
+        nodes.resize(circuit.size());
         std::unordered_map<int, int> compToSig;
+        std::unordered_map<int, int> compToConnect;
+        std::unordered_map<int, int> compToNode;
 
         /*
          * Signal address starts as 1 because the first index is reserved for a hardcoded 0. Components with empty input
          * connections are pointed to this address.
          */
-        int sigAddr = 1;
+        int nodeIndex = 0, sigAddr = 1, connectAddr = 0;
 
-        for(Component& comp : circuit) {
-            compToSig.insert({comp.getId(), sigAddr});
-            sigAddr += (int) comp.getNumInputs();
-            if(comp.getType() == CompType::CHIP) sigAddr += (int) comp.getData()->chipTemplate->getDefSignals().size();
+        for(int id : circuit.getSwitches()) {
+            compToNode.insert({id, nodeIndex});
+            nodeIndex += 1;
+            compToSig.insert({id, sigAddr});
+            sigAddr += 1;
+            compToConnect.insert({id, connectAddr});
+            connectAddr += 1;
         }
 
-        //list of indices for output signals
+        for(Component& comp : circuit) {
+            if(comp.getType() == CompType::SWITCH) continue;
 
-        //list of indices of input nodes
+            compToNode.insert({comp.getId(), nodeIndex});
+            nodeIndex += 1;
+
+            compToSig.insert({comp.getId(), sigAddr});
+            sigAddr += (int) comp.getNumInputs();
+            if(comp.getType() == CompType::CHIP)
+                sigAddr += (int) comp.getData()->chipTemplate->getDefSignals().size();
+
+            compToConnect.insert({comp.getId(), connectAddr});
+            connectAddr += calcConnectDataSize(comp);
+        }
+        connect.resize(connectAddr);
+
+        for(Component& comp : circuit) {
+            int id = comp.getId();
+            connectAddr = compToConnect[id];
+
+            for(int i = 0; i < comp.getNumInputs(); i++) {
+                Pin pin = comp.getInputPin(i);
+
+            }
+        }
+    }
+
+    int ChipSim::calcConnectDataSize(Component &comp) {
+
     }
 
 } // Gateway

@@ -7,32 +7,33 @@
 namespace Gateway {
 
     Component::Component(CompType type, int id, int x, int y) : type(type), id(id), x(x), y(y), data(nullptr) {
-        inputs.resize(type.defInputs);
-        outputs.resize(type.defOutputs);
+        //TODO make util methods
+        inputs.resize(2);
+        outputs.resize(2);
     }
 
-    void Component::connectInput(int index, int id) {
+    void Component::connectInput(int index, int id, int otherIdx) {
         //TODO check that input has max one connection
-        inputs[index].connect(id);
+        inputs[index].connect(id, otherIdx);
     }
 
     void Component::disconnectInput(int index, int id) {
         inputs[index].disconnect(id);
     }
 
-    void Component::connectOutput(int index, int id) {
-        outputs[index].connect(id);
+    void Component::connectOutput(int index, int id, int otherIdx) {
+        outputs[index].connect(id, otherIdx);
     }
 
     void Component::disconnectOutput(int index, int id) {
         outputs[index].disconnect(id);
     }
 
-    int Component::getNumInputs() {
+    int Component::getNumInputs() const {
         return (int) inputs.size();
     }
 
-    int Component::getNumOutputs() {
+    int Component::getNumOutputs() const {
         return (int) outputs.size();
     }
 
@@ -70,12 +71,12 @@ namespace Gateway {
         return type;
     }
 
-    const std::vector<Pin> &Component::getInputs() const {
-        return inputs;
+    const Pin &Component::getInputPin(int i) const {
+        return inputs[i];
     }
 
-    const std::vector<Pin> &Component::getOutputs() const {
-        return outputs;
+    const Pin &Component::getOutputPin(int i) const {
+        return outputs[i];
     }
 
     CompData *Component::getData() const {

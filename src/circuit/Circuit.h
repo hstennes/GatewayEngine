@@ -37,18 +37,26 @@ namespace Gateway {
 
         std::vector<int> usedIds;
 
-        int maxId = -1;
+        std::vector<int> switches;
+
+        std::vector<int> lights;
 
     public:
         int addComp(CompType type, int x, int y);
 
+        void removeComp(int id);
+
         Component& getComp(int id);
 
-        void removeComp(int id);
+        int size();
 
         void connect(int source, int sourcePinIdx, int dest, int destPinIdx);
 
         void subset(Circuit* newCircuit, std::vector<int>& ids);
+
+        [[nodiscard]] const std::vector<int> &getSwitches() const;
+
+        [[nodiscard]] const std::vector<int> &getLights() const;
 
     private:
         int nextId();

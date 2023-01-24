@@ -2,6 +2,7 @@
 
 #include "../circuit/Component.h"
 #include "../circuit/Circuit.h"
+#include "Utils.h"
 #include <array>
 
 int main() {
@@ -13,6 +14,6 @@ int main() {
     int light = circuit->addComp(CompType::LIGHT, 100, 100);
 
     for(Component& comp : *circuit) {
-        std::cout << comp.getType() << std::endl;
+        std::cout << Gateway::Utils::CTYPE_STRS[comp.getType()] << std::endl;
     }
 }

@@ -19,7 +19,7 @@ namespace Gateway {
 
         int x, y;
 
-        const CompType type;
+        CompType type;
 
         std::vector<Pin> inputs;
 
@@ -30,17 +30,17 @@ namespace Gateway {
     public:
         Component(CompType type, int id, int x, int y);
 
-        void connectInput(int index, int id);
+        void connectInput(int index, int id, int otherIdx);
 
         void disconnectInput(int index, int id);
 
-        void connectOutput(int index, int id);
+        void connectOutput(int index, int id, int otherIdx);
 
         void disconnectOutput(int index, int id);
 
-        int getNumInputs();
+        [[nodiscard]] int getNumInputs() const;
 
-        int getNumOutputs();
+        [[nodiscard]] int getNumOutputs() const;
 
         void updateIds(std::unordered_map<int, int>& idMap);
 
@@ -58,9 +58,9 @@ namespace Gateway {
 
         [[nodiscard]] const CompType &getType() const;
 
-        [[nodiscard]] const std::vector<Pin> &getInputs() const;
+        [[nodiscard]] const Pin &getInputPin(int i) const;
 
-        [[nodiscard]] const std::vector<Pin> &getOutputs() const;
+        [[nodiscard]] const Pin &getOutputPin(int i) const;
 
         [[nodiscard]] CompData *getData() const;
     };

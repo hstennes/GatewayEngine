@@ -9,16 +9,32 @@ namespace Gateway {
 
     int Circuit::addComp(CompType type, int x, int y) {
         int id = nextId();
-        components.emplace_back(type, id, x, y);
         usedIds.push_back(id);
+
+        if(id == components.size()) components.emplace_back(type, id, x, y);
+        else components.emplace(components.begin() + id, type, id, x, y);
+
+        if(type == CompType::LIGHT) lights.push_back(id);
+        else if(type == CompType::SWITCH) switches.push_back(id);
+
         return id;
     }
 
     void Circuit::removeComp(int id) {
-        freeIds.push_back(id);
         auto it = std::find(usedIds.begin(), usedIds.end(), id);
         if (it != usedIds.end()) {
             usedIds.erase(it);
+            freeIds.push_back(id);
+
+            CompType type = components[id].getType();
+            if(type == CompType::LIGHT) {
+                auto it2 = std::find(lights.begin(), lights.end(), id);
+                if (it2 != lights.end()) lights.erase(it2);
+            }
+            else if(type == CompType::SWITCH) {
+                auto it2 = std::find(switches.begin(), switches.end(), id);
+                if (it2 != switches.end()) switches.erase(it2);
+            }
         }
     }
 
@@ -26,14 +42,18 @@ namespace Gateway {
         return components[id];
     }
 
+    int Circuit::size() {
+        return (int) components.size();
+    }
+
     void Circuit::connect(int source, int sourcePinIdx, int dest, int destPinIdx) {
-        components[source].connectOutput(sourcePinIdx, dest);
-        components[dest].connectInput(destPinIdx, source);
+        components[source].connectOutput(sourcePinIdx, dest, destPinIdx);
+        components[dest].connectInput(destPinIdx, source, sourcePinIdx);
         //TODO add a wire
     }
 
     int Circuit::nextId() {
-        if(freeIds.empty()) return ++maxId;
+        if(freeIds.empty()) return (int) components.size();
         else {
             int newId = *freeIds.end();
             freeIds.pop_back();
@@ -54,6 +74,13 @@ namespace Gateway {
             newComps->emplace_back(components[id]);
             newComps->back().updateIds(idMap);
         }
-        newCircuit->maxId = (int) ids.size();
+    }
+
+    const std::vector<int> &Circuit::getSwitches() const {
+        return switches;
+    }
+
+    const std::vector<int> &Circuit::getLights() const {
+        return lights;
     }
 } // Gateway
