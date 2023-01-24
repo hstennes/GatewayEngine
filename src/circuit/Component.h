@@ -8,13 +8,13 @@
 #include <unordered_map>
 #include "Pin.h"
 #include "CompType.h"
+#include "CompData.h"
 
-class ChipTemplate;
 namespace Gateway {
 
     class Component {
 
-    public:
+    private:
         int id;
 
         int x, y;
@@ -25,15 +25,44 @@ namespace Gateway {
 
         std::vector<Pin> outputs;
 
-        //TODO these could be refactored into a ComponentInfo object
-        ChipTemplate* chipTemplate;
-
-        std::vector<int> split;
-
-        Component(CompType type, int id, int x, int y);
+        CompData* data;
 
     public:
+        Component(CompType type, int id, int x, int y);
+
+        void connectInput(int index, int id);
+
+        void disconnectInput(int index, int id);
+
+        void connectOutput(int index, int id);
+
+        void disconnectOutput(int index, int id);
+
+        int getNumInputs();
+
+        int getNumOutputs();
+
         void updateIds(std::unordered_map<int, int>& idMap);
+
+        [[nodiscard]] int getId() const;
+
+        void setId(int id);
+
+        [[nodiscard]] int getX() const;
+
+        void setX(int x);
+
+        [[nodiscard]] int getY() const;
+
+        void setY(int y);
+
+        [[nodiscard]] const CompType &getType() const;
+
+        [[nodiscard]] const std::vector<Pin> &getInputs() const;
+
+        [[nodiscard]] const std::vector<Pin> &getOutputs() const;
+
+        [[nodiscard]] CompData *getData() const;
     };
 
 } // Gateway

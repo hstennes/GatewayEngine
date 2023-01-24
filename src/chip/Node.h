@@ -11,7 +11,11 @@ namespace Gateway {
 
     class Node {
     public:
-        //Start index of signal data for this node in the signals array
+
+        /*
+         * Start index for this component's signal data in the signal array. The data starts with output signals,
+         * followed by all nested signals if this node represents a chip.
+         */
         int sigAddr;
 
         /*

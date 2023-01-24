@@ -6,6 +6,7 @@
 #define GATEWAYENGINE_PIN_H
 
 #include <vector>
+#include <unordered_map>
 
 namespace Gateway {
     class Pin {
@@ -15,15 +16,27 @@ namespace Gateway {
             Input, Output
         };
 
+    private:
         const Type type = Type::Input;
 
-        std::vector<int> connect;
+        std::vector<int> connections;
 
         int signal;
 
+    public:
         Pin() = default;
 
-        Pin(Type type);
+        explicit Pin(Type type);
+
+        [[nodiscard]] Type getType() const;
+
+        [[nodiscard]] int getSignal() const;
+
+        void connect(int id);
+
+        void disconnect(int id);
+
+        void updateIds(std::unordered_map<int, int>& idMap);
     };
 }
 

@@ -5,6 +5,8 @@
 #ifndef GATEWAYENGINE_COMPTYPE_H
 #define GATEWAYENGINE_COMPTYPE_H
 
+#include <ostream>
+
 namespace Gateway {
 
     class CompType {
@@ -18,6 +20,7 @@ namespace Gateway {
         static const CompType XNOR;
         static const CompType SWITCH;
         static const CompType LIGHT;
+        static const CompType CHIP;
 
     public:
         const int id;
@@ -32,6 +35,7 @@ namespace Gateway {
         CompType(int id, int defInputs, int defOutputs) : id(id), defInputs(defInputs), defOutputs(defOutputs) {};
     };
 
+    std::ostream& operator<<(std::ostream &strm, const CompType &a);
 } // Gateway
 
 #endif //GATEWAYENGINE_COMPTYPE_H

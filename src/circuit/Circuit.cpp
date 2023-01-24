@@ -27,8 +27,8 @@ namespace Gateway {
     }
 
     void Circuit::connect(int source, int sourcePinIdx, int dest, int destPinIdx) {
-        components[source].outputs[sourcePinIdx].connect.push_back(dest);
-        components[dest].inputs[destPinIdx].connect.push_back(source);
+        components[source].connectOutput(sourcePinIdx, dest);
+        components[dest].connectInput(destPinIdx, source);
         //TODO add a wire
     }
 

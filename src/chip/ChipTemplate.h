@@ -7,18 +7,22 @@
 
 #include "../circuit/Circuit.h"
 #include "ChipSim.h"
+#include <vector>
 
 namespace Gateway {
 
     class ChipTemplate {
-    public:
+    private:
         Circuit circuit;
+
         ChipSim sim;
+
+        std::vector<int> defSignals;
 
     public:
         ChipTemplate(Circuit& fullCircuit, std::vector<int>& subset);
 
-        void compile();
+        [[nodiscard]] const std::vector<int> &getDefSignals() const;
     };
 
 } // Gateway

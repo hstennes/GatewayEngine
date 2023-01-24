@@ -10,4 +10,8 @@ namespace Gateway {
         fullCircuit.subset(&circuit, subset);
     }
 
+    const std::vector<int> &ChipTemplate::getDefSignals() const {
+        return defSignals;
+    }
+
 } // Gateway

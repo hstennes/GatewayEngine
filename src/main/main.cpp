@@ -2,12 +2,7 @@
 
 #include "../circuit/Component.h"
 #include "../circuit/Circuit.h"
-#include "../chip/ChipTemplate.h"
-#include "../chip/ActiveStack.h"
-#include <stack>
 #include <array>
-#include <unordered_set>
-#include <chrono>
 
 int main() {
     using namespace Gateway;
@@ -18,6 +13,6 @@ int main() {
     int light = circuit->addComp(CompType::LIGHT, 100, 100);
 
     for(Component& comp : *circuit) {
-        std::cout << comp.x << std::endl;
+        std::cout << comp.getType() << std::endl;
     }
 }
