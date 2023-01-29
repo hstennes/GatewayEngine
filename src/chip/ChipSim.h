@@ -23,7 +23,9 @@ namespace Gateway {
     private:
         void compile(Circuit& circuit);
 
-        int calcConnectDataSize(Component& comp);
+        static int calcConnectDataSize(Component& comp);
+
+        static int maxOutputWires(Component& comp);
     };
 
 } // Gateway

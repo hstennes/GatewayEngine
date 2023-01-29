@@ -2,8 +2,8 @@
 // Created by Hank Stennes on 1/15/23.
 //
 
-#ifndef GATEWAYENGINE_PIN_H
-#define GATEWAYENGINE_PIN_H
+#ifndef GATEWAYENGINE_OUTPIN_H
+#define GATEWAYENGINE_OUTPIN_H
 
 #include <vector>
 #include <array>
@@ -11,32 +11,19 @@
 
 namespace Gateway {
 
-    class Pin {
-
-    public:
-        enum class Type {
-            Input, Output
-        };
+    class OutPin {
 
     private:
-        const Type type = Type::Input;
-
         std::vector<std::array<int, 2>> connections;
 
         int signal;
 
     public:
-        Pin() = default;
-
-        explicit Pin(Type type);
-
         void connect(int id, int otherIdx);
 
         void disconnect(int id);
 
         void updateIds(std::unordered_map<int, int>& idMap);
-
-        [[nodiscard]] Type getType() const;
 
         [[nodiscard]] int getSignal() const;
 
@@ -46,4 +33,4 @@ namespace Gateway {
     };
 }
 
-#endif //GATEWAYENGINE_PIN_H
+#endif //GATEWAYENGINE_OUTPIN_H

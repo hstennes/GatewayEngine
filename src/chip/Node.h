@@ -20,11 +20,7 @@ namespace Gateway {
 
         /*
          * Start index of connection data for this node in the connect array
-         * Format {in1, in2, out1a, out1b, undef, out2a, undef, undef, out3a, out3b, out3c, split1, split2}
-         * In this example, there are 2 inputs and 3 outputs. The first output has 2 connected components, the second
-         * has 1, and the third has 3. The in values refer to indices in the signals array, and the out values are
-         * indices in the nodes array. If the component is a splitter, the split array is appended to the end of this
-         * data.
+         * Format {in1, in2, out1end, out2end, out1a, out1b..., out2a, out2b..., split1, split2}
          */
         int connectAddr;
 
@@ -33,12 +29,10 @@ namespace Gateway {
          */
         int numInputs;
 
-        /*
-         * Number of values corresponding to each connection in the mark data. This is equal to the greatest number of
-         * wires on any output connection. In the example for connectAddr, this is 3, because the third connection has 3
-         * wires.
+        /**
+         * Number of output connections
          */
-        int connectMarkSize;
+        int numOutputs;
 
         /*
          * General purpose data, depends on type of component

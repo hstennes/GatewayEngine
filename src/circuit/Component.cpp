@@ -17,8 +17,8 @@ namespace Gateway {
         inputs[index].connect(id, otherIdx);
     }
 
-    void Component::disconnectInput(int index, int id) {
-        inputs[index].disconnect(id);
+    void Component::disconnectInput(int index) {
+        inputs[index].disconnect();
     }
 
     void Component::connectOutput(int index, int id, int otherIdx) {
@@ -39,8 +39,8 @@ namespace Gateway {
 
     void Component::updateIds(std::unordered_map<int, int> &idMap) {
         id = idMap[id];
-        for(Pin& input : inputs) input.updateIds(idMap);
-        for(Pin& output : outputs) output.updateIds(idMap);
+        for(InPin& input : inputs) input.updateIds(idMap);
+        for(OutPin& output : outputs) output.updateIds(idMap);
     }
 
     int Component::getId() const {
@@ -71,11 +71,11 @@ namespace Gateway {
         return type;
     }
 
-    const Pin &Component::getInputPin(int i) const {
+    const InPin &Component::getInputPin(int i) const {
         return inputs[i];
     }
 
-    const Pin &Component::getOutputPin(int i) const {
+    const OutPin &Component::getOutputPin(int i) const {
         return outputs[i];
     }
 

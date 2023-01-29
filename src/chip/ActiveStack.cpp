@@ -24,6 +24,11 @@ namespace Gateway {
         for(int i : items) markStack->push(i);
     }
 
+    void ActiveStack::mark(int item) {
+        markCount += 1;
+        markStack->push(item);
+    }
+
     void ActiveStack::startInner() {
         levels.emplace(markCount, remainCount, flipState);
         markCount = 0;

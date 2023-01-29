@@ -21,46 +21,70 @@ namespace Gateway {
          * Signal address starts as 1 because the first index is reserved for a hardcoded 0. Components with empty input
          * connections are pointed to this address.
          */
-        int nodeIndex = 0, sigAddr = 1, connectAddr = 0;
+        int nodeIdx = 0, sigIdx = 1, connectIdx = 0;
 
         for(int id : circuit.getSwitches()) {
-            compToNode.insert({id, nodeIndex});
-            nodeIndex += 1;
-            compToSig.insert({id, sigAddr});
-            sigAddr += 1;
-            compToConnect.insert({id, connectAddr});
-            connectAddr += 1;
+            compToNode.insert({id, nodeIdx});
+            nodeIdx += 1;
+            compToSig.insert({id, sigIdx});
+            sigIdx += 1;
+            compToConnect.insert({id, connectIdx});
+            connectIdx += 1;
         }
 
         for(Component& comp : circuit) {
             if(comp.getType() == CompType::SWITCH) continue;
 
-            compToNode.insert({comp.getId(), nodeIndex});
-            nodeIndex += 1;
+            compToNode.insert({comp.getId(), nodeIdx});
+            nodeIdx += 1;
 
-            compToSig.insert({comp.getId(), sigAddr});
-            sigAddr += (int) comp.getNumInputs();
+            compToSig.insert({comp.getId(), sigIdx});
+            sigIdx += (int) comp.getNumInputs();
             if(comp.getType() == CompType::CHIP)
-                sigAddr += (int) comp.getData()->chipTemplate->getDefSignals().size();
+                sigIdx += (int) comp.getData()->chipTemplate->getDefSignals().size();
 
-            compToConnect.insert({comp.getId(), connectAddr});
-            connectAddr += calcConnectDataSize(comp);
+            compToConnect.insert({comp.getId(), connectIdx});
+            connectIdx += calcConnectDataSize(comp);
         }
-        connect.resize(connectAddr);
+        connect.resize(connectIdx);
 
         for(Component& comp : circuit) {
             int id = comp.getId();
-            connectAddr = compToConnect[id];
+            connectIdx = compToConnect[id];
 
             for(int i = 0; i < comp.getNumInputs(); i++) {
-                Pin pin = comp.getInputPin(i);
+                InPin pin = comp.getInputPin(i);
+                connect[connectIdx] = compToSig[pin.getConnection()[0]] + pin.getConnection()[1];
+                connectIdx++;
+            }
 
+            int totalWires = 0;
+            for(int i = 0; i < comp.getNumOutputs(); i++) {
+//                OutPin outPin = comp.getOutputPin(i);
+//                for(int j = 0; j < outPin.getNumConnections(); j++) {
+//
+//                }
+//
+//                outputEnd += outPin.getNumConnections();
+//                connect[connectIdx] = outputEnd;
+//                connectIdx++;
             }
         }
     }
 
     int ChipSim::calcConnectDataSize(Component &comp) {
+        int result = maxOutputWires(comp) + comp.getNumInputs();
+        if(comp.getType() == CompType::SPLITTER) result += (int) comp.getData()->split.size();
+        return result;
+    }
 
+    int ChipSim::maxOutputWires(Component &comp) {
+        int maxWires = 0;
+        for(int i = 0; i < comp.getNumOutputs(); i++) {
+            int wires = comp.getOutputPin(i).getNumConnections();
+            if(wires > maxWires) maxWires = wires;
+        }
+        return maxWires;
     }
 
 } // Gateway

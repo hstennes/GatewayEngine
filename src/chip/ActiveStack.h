@@ -37,6 +37,8 @@ namespace Gateway {
 
         void mark(std::vector<int>& items);
 
+        void mark(int item);
+
         void startInner();
 
         void finishInner();

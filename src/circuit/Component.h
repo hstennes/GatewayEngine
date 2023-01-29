@@ -6,9 +6,10 @@
 
 #include <vector>
 #include <unordered_map>
-#include "Pin.h"
+#include "OutPin.h"
 #include "CompType.h"
 #include "CompData.h"
+#include "InPin.h"
 
 namespace Gateway {
 
@@ -21,9 +22,9 @@ namespace Gateway {
 
         CompType type;
 
-        std::vector<Pin> inputs;
+        std::vector<InPin> inputs;
 
-        std::vector<Pin> outputs;
+        std::vector<OutPin> outputs;
 
         CompData* data;
 
@@ -32,7 +33,7 @@ namespace Gateway {
 
         void connectInput(int index, int id, int otherIdx);
 
-        void disconnectInput(int index, int id);
+        void disconnectInput(int index);
 
         void connectOutput(int index, int id, int otherIdx);
 
@@ -58,9 +59,9 @@ namespace Gateway {
 
         [[nodiscard]] const CompType &getType() const;
 
-        [[nodiscard]] const Pin &getInputPin(int i) const;
+        [[nodiscard]] const InPin &getInputPin(int i) const;
 
-        [[nodiscard]] const Pin &getOutputPin(int i) const;
+        [[nodiscard]] const OutPin &getOutputPin(int i) const;
 
         [[nodiscard]] CompData *getData() const;
     };
