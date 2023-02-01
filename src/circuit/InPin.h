@@ -13,7 +13,7 @@ namespace Gateway {
     class InPin {
 
     private:
-        std::array<int, 2> connection {-1, -1};
+        std::array<int, 2> connection {-1, 0};
 
     public:
         void connect(int id, int otherIdx);

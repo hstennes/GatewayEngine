@@ -12,7 +12,9 @@ namespace Gateway {
         usedIds.push_back(id);
 
         if(id == components.size()) components.emplace_back(type, id, x, y);
-        else components.emplace(components.begin() + id, type, id, x, y);
+        else new (&components[id]) Component(type, id, x, y);
+
+        //TODO this is broken because emplace does not do what you think it did
 
         if(type == CompType::LIGHT) lights.push_back(id);
         else if(type == CompType::SWITCH) switches.push_back(id);

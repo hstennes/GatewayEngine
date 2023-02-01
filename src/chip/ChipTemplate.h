@@ -17,8 +17,6 @@ namespace Gateway {
 
         ChipSim sim;
 
-        std::vector<int> defSignals;
-
     public:
         ChipTemplate(Circuit& fullCircuit, std::vector<int>& subset);
 

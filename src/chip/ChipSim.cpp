@@ -8,7 +8,7 @@
 namespace Gateway {
 
     ChipSim::ChipSim(Circuit &circuit) {
-
+        compile(circuit);
     }
 
     void ChipSim::compile(Circuit& circuit) {
@@ -16,75 +16,116 @@ namespace Gateway {
         std::unordered_map<int, int> compToSig;
         std::unordered_map<int, int> compToConnect;
         std::unordered_map<int, int> compToNode;
+        std::unordered_map<int, int> lightToOutput;
 
         /*
          * Signal address starts as 1 because the first index is reserved for a hardcoded 0. Components with empty input
          * connections are pointed to this address.
          */
-        int nodeIdx = 0, sigIdx = 1, connectIdx = 0;
+        int nodeIdx = 0, sigIdx = 1, connectIdx = 0, lightIdx = 0;
+        compToSig[-1] = 0;
 
+        /*
+         * Create node objects and populate component allocation maps. Create switches first so that the first n Nodes
+         * correspond to chip inputs in the same order. This also means that indices 1 to n+1 in the signals array
+         * correspond to chip input signals.
+         */
         for(int id : circuit.getSwitches()) {
-            compToNode.insert({id, nodeIdx});
-            nodeIdx += 1;
-            compToSig.insert({id, sigIdx});
-            sigIdx += 1;
-            compToConnect.insert({id, connectIdx});
-            connectIdx += 1;
+            createNode(circuit, circuit.getComp(id), nodeIdx, sigIdx, connectIdx,
+                       compToSig, compToConnect, compToNode);
         }
-
         for(Component& comp : circuit) {
-            if(comp.getType() == CompType::SWITCH) continue;
-
-            compToNode.insert({comp.getId(), nodeIdx});
-            nodeIdx += 1;
-
-            compToSig.insert({comp.getId(), sigIdx});
-            sigIdx += (int) comp.getNumInputs();
-            if(comp.getType() == CompType::CHIP)
-                sigIdx += (int) comp.getData()->chipTemplate->getDefSignals().size();
-
-            compToConnect.insert({comp.getId(), connectIdx});
-            connectIdx += calcConnectDataSize(comp);
+            if(comp.getType() != CompType::SWITCH)
+                createNode(circuit, comp, nodeIdx, sigIdx, connectIdx,
+                           compToSig, compToConnect, compToNode);
         }
         connect.resize(connectIdx);
+        defSignals.resize(sigIdx);
 
+        //Map light IDs to chip output indices
+        for(int id : circuit.getLights()) {
+            lightToOutput[id] = lightIdx;
+            lightIdx++;
+        }
+        outputAddrs.resize(lightIdx);
+
+        //Populate connect, defSignals and outputAddrs based on allocation maps
         for(Component& comp : circuit) {
-            int id = comp.getId();
-            connectIdx = compToConnect[id];
-
-            for(int i = 0; i < comp.getNumInputs(); i++) {
-                InPin pin = comp.getInputPin(i);
-                connect[connectIdx] = compToSig[pin.getConnection()[0]] + pin.getConnection()[1];
-                connectIdx++;
-            }
-
-            int totalWires = 0;
-            for(int i = 0; i < comp.getNumOutputs(); i++) {
-//                OutPin outPin = comp.getOutputPin(i);
-//                for(int j = 0; j < outPin.getNumConnections(); j++) {
-//
-//                }
-//
-//                outputEnd += outPin.getNumConnections();
-//                connect[connectIdx] = outputEnd;
-//                connectIdx++;
-            }
+            populateDataArrays(comp, compToSig, compToConnect, compToNode, lightToOutput);
         }
     }
 
-    int ChipSim::calcConnectDataSize(Component &comp) {
-        int result = maxOutputWires(comp) + comp.getNumInputs();
-        if(comp.getType() == CompType::SPLITTER) result += (int) comp.getData()->split.size();
-        return result;
+    void ChipSim::createNode(Circuit& circuit, Component& comp, int& nodeIdx, int& sigIdx, int& connectIdx,
+                             std::unordered_map<int, int>& compToSig,
+                             std::unordered_map<int, int>& compToConnect,
+                             std::unordered_map<int, int>& compToNode) {
+
+        new (&nodes[nodeIdx]) Node(comp.getType(), sigIdx, connectIdx,
+                                   comp.getNumInputs(), comp.getNumOutputs(), 0);
+
+        compToNode[comp.getId()] = nodeIdx;
+        nodeIdx += 1;
+
+        compToSig[comp.getId()] = sigIdx;
+        sigIdx += (int) comp.getNumOutputs();
+        if(comp.getType() == CompType::CHIP)
+            sigIdx += (int) comp.getData()->chipTemplate->getDefSignals().size();
+
+        compToConnect[comp.getId()] = connectIdx;
+        connectIdx += calcConnectDataSize(circuit, comp);
     }
 
-    int ChipSim::maxOutputWires(Component &comp) {
-        int maxWires = 0;
+    void ChipSim::populateDataArrays(Component& comp, std::unordered_map<int, int>& compToSig,
+                                     std::unordered_map<int, int>& compToConnect,
+                                     std::unordered_map<int, int>& compToNode,
+                                     std::unordered_map<int, int>& lightToOutput) {
+        int id = comp.getId();
+        int connectIdx = compToConnect[id];
+        int connectItr1 = connectIdx;
+        int sigIdx = compToSig[id];
+
+        for(int i = 0; i < comp.getNumInputs(); i++) {
+            InPin pin = comp.getInputPin(i);
+            connect[connectItr1] = compToSig[pin.getConnection()[0]] + pin.getConnection()[1];
+            connectItr1++;
+        }
+
+        int connectItr2 = connectItr1 + comp.getNumOutputs();
         for(int i = 0; i < comp.getNumOutputs(); i++) {
-            int wires = comp.getOutputPin(i).getNumConnections();
-            if(wires > maxWires) maxWires = wires;
+            const OutPin& outPin = comp.getOutputPin(i);
+            defSignals[sigIdx + i] = outPin.getSignal();
+            for(int j = 0; j < outPin.getNumConnections(); j++) {
+                int otherId = outPin.getConnection(j)[0];
+                if(lightToOutput.find(otherId) == compToNode.end()) {
+                    connect[connectItr2] = compToNode[otherId];
+                    connectItr2++;
+                }
+                else outputAddrs[lightToOutput[otherId]] = compToSig[id] + j;
+            }
+            connect[connectItr1] = connectItr2 - connectIdx;
         }
-        return maxWires;
+        //TODO copy inner chip signals
+
+        if(comp.getType() == CompType::SPLITTER){
+            int* connectPtr = connect.data() + connectItr2;
+            std::vector<int>& split = comp.getData()->split;
+            memcpy(connectPtr, split.data(), split.size() * sizeof(int));
+        }
     }
 
+    int ChipSim::calcConnectDataSize(Circuit& circuit, Component& comp) {
+        int size = comp.getNumInputs() + comp.getNumOutputs();
+        for(int i = 0; i < comp.getNumOutputs(); i++) {
+            const OutPin& pin = comp.getOutputPin(i);
+            for(int j = 0; j < pin.getNumConnections(); j++) {
+                if(circuit.getComp(pin.getConnection(j)[0]).getType() != CompType::LIGHT) size++;
+            }
+        }
+        if(comp.getType() == CompType::SPLITTER) size += (int) comp.getData()->split.size();
+        return size;
+    }
+
+    const std::vector<int> &ChipSim::getDefSignals() const {
+        return defSignals;
+    }
 } // Gateway

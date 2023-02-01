@@ -3,13 +3,14 @@
 //
 
 #include "Component.h"
+#include "../main/Utils.h"
 
 namespace Gateway {
 
     Component::Component(CompType type, int id, int x, int y) : type(type), id(id), x(x), y(y), data(nullptr) {
-        //TODO make util methods
-        inputs.resize(2);
-        outputs.resize(2);
+        std::array<int, 2> inputsOutputs = Utils::numInputsOutputs(type);
+        inputs.resize(inputsOutputs[0]);
+        outputs.resize(inputsOutputs[1]);
     }
 
     void Component::connectInput(int index, int id, int otherIdx) {

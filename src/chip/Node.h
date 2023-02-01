@@ -6,11 +6,13 @@
 #define GATEWAYENGINE_NODE_H
 
 #include <vector>
+#include "../circuit/CompType.h"
 
 namespace Gateway {
 
-    class Node {
-    public:
+    struct Node {
+
+        CompType type;
 
         /*
          * Start index for this component's signal data in the signal array. The data starts with output signals,
@@ -27,17 +29,21 @@ namespace Gateway {
         /*
          * Number of input connections
          */
-        int numInputs;
+        uint8_t numInputs;
 
         /**
          * Number of output connections
          */
-        int numOutputs;
+        uint8_t numOutputs;
 
         /*
          * General purpose data, depends on type of component
          */
-        uint64_t data;
+        int data;
+
+        Node() = default;
+
+        Node(CompType type, int sigAddr, int connectAddr, uint8_t numInputs, uint8_t numOutputs, int data);
     };
 
 } // Gateway

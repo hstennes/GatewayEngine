@@ -13,7 +13,7 @@ namespace Gateway {
 
     void InPin::disconnect() {
         connection[0] = -1;
-        connection[1] = -1;
+        connection[1] = 0;
     }
 
     void InPin::updateIds(std::unordered_map<int, int> &idMap) {

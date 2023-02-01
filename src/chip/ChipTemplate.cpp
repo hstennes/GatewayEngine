@@ -11,7 +11,7 @@ namespace Gateway {
     }
 
     const std::vector<int> &ChipTemplate::getDefSignals() const {
-        return defSignals;
+        return sim.getDefSignals();
     }
 
 } // Gateway
