@@ -4,6 +4,7 @@
 
 #include "Circuit.h"
 #include <unordered_map>
+#include <algorithm>
 
 namespace Gateway {
 

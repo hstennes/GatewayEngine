@@ -6,6 +6,7 @@
 #define GATEWAYENGINE_ACTIVESTACK_H
 
 #include <stack>
+#include <vector>
 
 namespace Gateway {
 
