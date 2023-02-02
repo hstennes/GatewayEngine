@@ -8,6 +8,7 @@
 namespace Gateway {
 
     ChipSim::ChipSim(Circuit &circuit) {
+        numInputs = (int) circuit.getSwitches().size();
         compile(circuit);
     }
 
@@ -128,4 +129,44 @@ namespace Gateway {
     const std::vector<int> &ChipSim::getDefSignals() const {
         return defSignals;
     }
+
+    void ChipSim::update(int* signals, ActiveStack &active, Circuit& circuit, int compId) {
+        prepareInput(signals, active, circuit, compId);
+    }
+
+    void ChipSim::update(int* signals, int* outerSignals, ActiveStack &active, ChipSim &sim, int nodeId) {
+        prepareInput(signals, outerSignals, active, sim, nodeId);
+    }
+
+    void ChipSim::prepareInput(int* signals, ActiveStack& active, Circuit& circuit, int compId) const {
+        for(int i = 0; i < numInputs; i++) {
+            int& currentSignal = signals[i + 1];
+            int newSignal = circuit.getCompInputSignal(compId, i);
+            if(newSignal != currentSignal) {
+                //TODO mark stuff
+                currentSignal = newSignal;
+            }
+        }
+    }
+
+    void ChipSim::prepareInput(int* signals, int* outerSignals, ActiveStack& active, ChipSim &sim, int nodeId) {
+        for(int i = 0; i < numInputs; i++) {
+            int& currentSignal = signals[i + 1];
+            int newSignal = getNodeInputSignal(outerSignals, nodeId, i);
+            if(newSignal != currentSignal) {
+                //TODO mark stuff
+                currentSignal = newSignal;
+            }
+        }
+    }
+
+    void ChipSim::doMark(Node& node, int outputIdx, ActiveStack active) {
+        int connectAddr = node.connectAddr + node.numInputs;
+
+    }
+
+    int ChipSim::getNodeInputSignal(int* signals, int id, int idx) {
+        return signals[connect[nodes[id].connectAddr + idx]];
+    }
+
 } // Gateway

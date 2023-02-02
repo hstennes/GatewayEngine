@@ -48,6 +48,8 @@ namespace Gateway {
 
         Component& getComp(int id);
 
+        int getCompInputSignal(int id, int idx);
+
         int size();
 
         void connect(int source, int sourcePinIdx, int dest, int destPinIdx);

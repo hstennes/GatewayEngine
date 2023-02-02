@@ -8,15 +8,17 @@
 #include <vector>
 #include "Node.h"
 #include "../circuit/Circuit.h"
+#include "ActiveStack.h"
 
 namespace Gateway {
 
     class ChipSim {
-    public:
+    private:
         std::vector<Node> nodes;
         std::vector<int> connect;
         std::vector<int> outputAddrs;
         std::vector<int> defSignals;
+        int numInputs;
 
     public:
         explicit ChipSim(Circuit& circuit);
@@ -34,8 +36,20 @@ namespace Gateway {
                         std::unordered_map<int, int> &compToSig,
                         std::unordered_map<int, int> &compToConnect, std::unordered_map<int, int> &compToNode);
 
+        void prepareInput(int* signals, ActiveStack& active, Circuit& circuit, int chipId) const;
+
+        void prepareInput(int* signals, int* outerSignals, ActiveStack& active, ChipSim& sim, int nodeId);
+
+        void doMark(Node& node, int outputIdx, ActiveStack active);
+
     public:
+        void update(int* signals, ActiveStack& active, Circuit& circuit, int compId);
+
+        void update(int* signals, int* outerSignals, ActiveStack& active, ChipSim& sim, int nodeId);
+
         [[nodiscard]] const std::vector<int> &getDefSignals() const;
+
+        int getNodeInputSignal(int* signals, int id, int idx);
     };
 
 } // Gateway
