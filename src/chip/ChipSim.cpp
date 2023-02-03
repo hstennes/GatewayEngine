@@ -86,12 +86,16 @@ namespace Gateway {
         int sigIdx = compToSig[id];
 
         for(int i = 0; i < comp.getNumInputs(); i++) {
-            InPin pin = comp.getInputPin(i);
-            connect[connectItr1] = compToSig[pin.getConnection()[0]] + pin.getConnection()[1];
+            const std::array<int, 2>& connection = comp.getInputPin(i).getConnection();
+            connect[connectItr1] = compToSig[connection[0]] + connection[1];
             connectItr1++;
         }
 
-        int connectItr2 = connectItr1 + comp.getNumOutputs();
+        int connectItr2 = connectItr1;
+        if(comp.getNumOutputs() > 0) {
+            connectItr2 += comp.getNumOutputs() + 1;
+            connect[connectItr1] = connectItr2 - connectIdx;
+        }
         for(int i = 0; i < comp.getNumOutputs(); i++) {
             const OutPin& outPin = comp.getOutputPin(i);
             defSignals[sigIdx + i] = outPin.getSignal();
@@ -103,19 +107,26 @@ namespace Gateway {
                 }
                 else outputAddrs[lightToOutput[otherId]] = compToSig[id] + j;
             }
+            connectItr1++;
             connect[connectItr1] = connectItr2 - connectIdx;
         }
-        //TODO copy inner chip signals
 
-        if(comp.getType() == CompType::SPLITTER){
+        if(comp.getType() == CompType::SPLITTER) {
             int* connectPtr = connect.data() + connectItr2;
             std::vector<int>& split = comp.getData()->split;
             memcpy(connectPtr, split.data(), split.size() * sizeof(int));
         }
+        else if(comp.getType() == CompType::CHIP) {
+            int* connectPtr = connect.data() + connectItr2;
+            const std::vector<int>& innerDefSignals = comp.getData()->chipTemplate->getDefSignals();
+            memcpy(connectPtr, innerDefSignals.data(), innerDefSignals.size() * sizeof(int));
+        }
     }
 
     int ChipSim::calcConnectDataSize(Circuit& circuit, Component& comp) {
-        int size = comp.getNumInputs() + comp.getNumOutputs();
+        int size = comp.getNumInputs();
+        if(comp.getNumOutputs() > 0) size += comp.getNumOutputs() + 1;
+
         for(int i = 0; i < comp.getNumOutputs(); i++) {
             const OutPin& pin = comp.getOutputPin(i);
             for(int j = 0; j < pin.getNumConnections(); j++) {
@@ -131,38 +142,73 @@ namespace Gateway {
     }
 
     void ChipSim::update(int* signals, ActiveStack &active, Circuit& circuit, int compId) {
-        prepareInput(signals, active, circuit, compId);
+        bool change = prepareInput(signals, active, circuit, compId);
     }
 
     void ChipSim::update(int* signals, int* outerSignals, ActiveStack &active, ChipSim &sim, int nodeId) {
-        prepareInput(signals, outerSignals, active, sim, nodeId);
+        bool change = prepareInput(signals, outerSignals, active, sim, nodeId);
     }
 
-    void ChipSim::prepareInput(int* signals, ActiveStack& active, Circuit& circuit, int compId) const {
+    void ChipSim::internalUpdate(int *signals, ActiveStack& active) {
+        while(active.hasNext()) {
+            updateNode(active.next(), signals, active);
+        }
+    }
+
+    void ChipSim::updateNode(int nodeId, int* signals, ActiveStack& active) {
+        Node& node = nodes[nodeId];
+        switch(node.type) {
+            case AND: {
+                int newSignal = signals[connect[node.connectAddr]];
+                for (int i = 1; i < node.numInputs; i++) newSignal &= signals[connect[node.connectAddr + i]];
+                break;
+            }
+            case OR: {
+                int newSignal = signals[connect[node.connectAddr]];
+                for (int i = 1; i < node.numInputs; i++) newSignal |= signals[connect[node.connectAddr + i]];
+                break;
+            }
+            case XOR: {
+                int newSignal = signals[connect[node.connectAddr]];
+                for (int i = 1; i < node.numInputs; i++) newSignal ^= signals[connect[node.connectAddr + i]];
+                break;
+            }
+        }
+    }
+
+    bool ChipSim::prepareInput(int* signals, ActiveStack& active, Circuit& circuit, int compId) {
+        bool change = false;
         for(int i = 0; i < numInputs; i++) {
             int& currentSignal = signals[i + 1];
             int newSignal = circuit.getCompInputSignal(compId, i);
             if(newSignal != currentSignal) {
-                //TODO mark stuff
+                change = true;
+                markConnectedComps(nodes[i], 0, active);
                 currentSignal = newSignal;
             }
         }
+        return change;
     }
 
-    void ChipSim::prepareInput(int* signals, int* outerSignals, ActiveStack& active, ChipSim &sim, int nodeId) {
+    bool ChipSim::prepareInput(int* signals, int* outerSignals, ActiveStack& active, ChipSim &sim, int nodeId) {
+        bool change = false;
         for(int i = 0; i < numInputs; i++) {
             int& currentSignal = signals[i + 1];
             int newSignal = getNodeInputSignal(outerSignals, nodeId, i);
             if(newSignal != currentSignal) {
-                //TODO mark stuff
+                change = true;
+                markConnectedComps(nodes[i], 0, active);
                 currentSignal = newSignal;
             }
         }
+        return change;
     }
 
-    void ChipSim::doMark(Node& node, int outputIdx, ActiveStack active) {
-        int connectAddr = node.connectAddr + node.numInputs;
-
+    void ChipSim::markConnectedComps(Node& node, int outputIdx, ActiveStack active) {
+        int connectAddr = node.connectAddr + node.numInputs + outputIdx;
+        for(int i = connect[connectAddr]; i < connect[connectAddr + 1]; i++) {
+            active.mark(connect[i]);
+        }
     }
 
     int ChipSim::getNodeInputSignal(int* signals, int id, int idx) {

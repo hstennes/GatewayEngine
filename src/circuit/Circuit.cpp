@@ -44,9 +44,8 @@ namespace Gateway {
     }
 
     int Circuit::getCompInputSignal(int id, int idx) {
-        int sourceId = components[id].getInputPin(idx).getConnection()[0];
-        int sourceOutputIdx = components[id].getInputPin(idx).getConnection()[1];
-        return components[sourceId].getOutputPin(sourceOutputIdx).getSignal();
+        const std::array<int, 2>& connection = components[id].getInputPin(idx).getConnection();
+        return components[connection[0]].getOutputPin(connection[1]).getSignal();
     }
 
     int Circuit::size() {

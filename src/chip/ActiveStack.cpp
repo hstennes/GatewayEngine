@@ -15,7 +15,7 @@ namespace Gateway {
         return top;
     }
 
-    bool ActiveStack::hasNext() {
+    bool ActiveStack::hasNext() const {
         return !(remainCount == 0 && markCount == 0);
     }
 

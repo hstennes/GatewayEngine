@@ -34,7 +34,7 @@ namespace Gateway {
     public:
         int next();
 
-        bool hasNext();
+        bool hasNext() const;
 
         void mark(std::vector<int>& items);
 

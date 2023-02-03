@@ -36,11 +36,15 @@ namespace Gateway {
                         std::unordered_map<int, int> &compToSig,
                         std::unordered_map<int, int> &compToConnect, std::unordered_map<int, int> &compToNode);
 
-        void prepareInput(int* signals, ActiveStack& active, Circuit& circuit, int chipId) const;
+        bool prepareInput(int* signals, ActiveStack& active, Circuit& circuit, int chipId);
 
-        void prepareInput(int* signals, int* outerSignals, ActiveStack& active, ChipSim& sim, int nodeId);
+        bool prepareInput(int* signals, int* outerSignals, ActiveStack& active, ChipSim& sim, int nodeId);
 
-        void doMark(Node& node, int outputIdx, ActiveStack active);
+        void markConnectedComps(Node& node, int outputIdx, ActiveStack active);
+
+        void internalUpdate(int* signals, ActiveStack& active);
+
+        void updateNode(int nodeId, int* signals, ActiveStack& active);
 
     public:
         void update(int* signals, ActiveStack& active, Circuit& circuit, int compId);

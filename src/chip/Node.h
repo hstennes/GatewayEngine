@@ -22,7 +22,7 @@ namespace Gateway {
 
         /*
          * Start index of connection data for this node in the connect array
-         * Format {in1, in2, out1end, out2end, out1a, out1b..., out2a, out2b..., split1, split2}
+         * Format {in1, in2, out1start, out2start, out2end, out1a, out1b..., out2a, out2b..., split1, split2}
          */
         int connectAddr;
 
