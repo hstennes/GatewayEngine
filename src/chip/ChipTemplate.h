@@ -17,10 +17,16 @@ namespace Gateway {
 
         ChipSim sim;
 
+        int id;
+
     public:
         ChipTemplate(Circuit& fullCircuit, std::vector<int>& subset);
 
         [[nodiscard]] const std::vector<int> &getDefSignals() const;
+
+        [[nodiscard]] ChipSim &getSim();
+
+        [[nodiscard]] int getId() const;
     };
 
 } // Gateway

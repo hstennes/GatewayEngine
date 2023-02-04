@@ -7,6 +7,7 @@
 
 #include <vector>
 #include "../circuit/CompType.h"
+#include "ActiveStack.h"
 
 namespace Gateway {
 
@@ -44,6 +45,8 @@ namespace Gateway {
         Node() = default;
 
         Node(CompType type, int sigAddr, int connectAddr, uint8_t numInputs, uint8_t numOutputs, int data);
+
+        void updateEventDriven(int* signals, std::vector<int>& connect, ActiveStack& active);
     };
 
 } // Gateway

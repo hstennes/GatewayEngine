@@ -4,6 +4,7 @@
 
 #include "ChipSim.h"
 #include "ChipTemplate.h"
+#include "TemplateList.h"
 
 namespace Gateway {
 
@@ -11,6 +12,8 @@ namespace Gateway {
         numInputs = (int) circuit.getSwitches().size();
         compile(circuit);
     }
+
+    //COMPILATION METHODS
 
     void ChipSim::compile(Circuit& circuit) {
         nodes.resize(circuit.size());
@@ -60,20 +63,22 @@ namespace Gateway {
                              std::unordered_map<int, int>& compToSig,
                              std::unordered_map<int, int>& compToConnect,
                              std::unordered_map<int, int>& compToNode) {
-
-        new (&nodes[nodeIdx]) Node(comp.getType(), sigIdx, connectIdx,
-                                   comp.getNumInputs(), comp.getNumOutputs(), 0);
-
         compToNode[comp.getId()] = nodeIdx;
         nodeIdx += 1;
 
         compToSig[comp.getId()] = sigIdx;
         sigIdx += (int) comp.getNumOutputs();
-        if(comp.getType() == CompType::CHIP)
+        int data = 0;
+        if(comp.getType() == CompType::CHIP) {
             sigIdx += (int) comp.getData()->chipTemplate->getDefSignals().size();
+            data = comp.getData()->chipTemplate->getId();
+        }
 
         compToConnect[comp.getId()] = connectIdx;
         connectIdx += calcConnectDataSize(circuit, comp);
+
+        new (&nodes[nodeIdx]) Node(comp.getType(), sigIdx, connectIdx,
+                                   comp.getNumInputs(), comp.getNumOutputs(), data);
     }
 
     void ChipSim::populateDataArrays(Component& comp, std::unordered_map<int, int>& compToSig,
@@ -137,41 +142,68 @@ namespace Gateway {
         return size;
     }
 
-    const std::vector<int> &ChipSim::getDefSignals() const {
-        return defSignals;
-    }
+    //SIMULATION METHODS
 
-    void ChipSim::update(int* signals, ActiveStack &active, Circuit& circuit, int compId) {
-        bool change = prepareInput(signals, active, circuit, compId);
-    }
-
-    void ChipSim::update(int* signals, int* outerSignals, ActiveStack &active, ChipSim &sim, int nodeId) {
-        bool change = prepareInput(signals, outerSignals, active, sim, nodeId);
-    }
-
-    void ChipSim::internalUpdate(int *signals, ActiveStack& active) {
+    void ChipSim::updateEventDriven(int *signals, ActiveStack &active) {
         while(active.hasNext()) {
-            updateNode(active.next(), signals, active);
+            updateNodeEventDriven(active.next(), signals, active);
         }
     }
 
-    void ChipSim::updateNode(int nodeId, int* signals, ActiveStack& active) {
+    void ChipSim::updateNodeEventDriven(int nodeId, int *signals, ActiveStack &active) {
         Node& node = nodes[nodeId];
         switch(node.type) {
             case AND: {
                 int newSignal = signals[connect[node.connectAddr]];
-                for (int i = 1; i < node.numInputs; i++) newSignal &= signals[connect[node.connectAddr + i]];
+                for (int i = 1; i < numInputs; i++) newSignal &= signals[connect[node.connectAddr + i]];
+                setOutputAndMark(node, signals, newSignal, 0, active);
                 break;
             }
             case OR: {
                 int newSignal = signals[connect[node.connectAddr]];
-                for (int i = 1; i < node.numInputs; i++) newSignal |= signals[connect[node.connectAddr + i]];
+                for (int i = 1; i < numInputs; i++) newSignal |= signals[connect[node.connectAddr + i]];
+                setOutputAndMark(node, signals, newSignal, 0, active);
                 break;
             }
             case XOR: {
                 int newSignal = signals[connect[node.connectAddr]];
-                for (int i = 1; i < node.numInputs; i++) newSignal ^= signals[connect[node.connectAddr + i]];
+                for (int i = 1; i < numInputs; i++) newSignal ^= signals[connect[node.connectAddr + i]];
+                setOutputAndMark(node, signals, newSignal, 0, active);
                 break;
+            }
+            case NAND: {
+                int newSignal = signals[connect[node.connectAddr]];
+                for (int i = 1; i < numInputs; i++) newSignal = ~(newSignal & signals[connect[node.connectAddr + i]]);
+                setOutputAndMark(node, signals, newSignal, 0, active);
+                break;
+            }
+            case NOR: {
+                int newSignal = signals[connect[node.connectAddr]];
+                for (int i = 1; i < numInputs; i++) newSignal = ~(newSignal | signals[connect[node.connectAddr + i]]);
+                setOutputAndMark(node, signals, newSignal, 0, active);
+                break;
+            }
+            case XNOR: {
+                int newSignal = signals[connect[node.connectAddr]];
+                for (int i = 1; i < numInputs; i++) newSignal = ~(newSignal ^ signals[connect[node.connectAddr + i]]);
+                setOutputAndMark(node, signals, newSignal, 0, active);
+                break;
+            }
+            case NOT: {
+                int newSignal = ~signals[connect[node.connectAddr]];
+                setOutputAndMark(node, signals, newSignal, 0, active);
+                break;
+            }
+            case CHIP: {
+                ChipSim& innerSim = TEMPLATE_LIST.getTemplate(node.data).getSim();
+                int* innerSignals = signals + node.sigAddr + node.numOutputs;
+                active.startInner();
+                innerSim.update(innerSignals, signals,active,
+                                *this, nodeId);
+                active.finishInner();
+                for(int i = 0; i < node.numOutputs; i++)
+                    setOutputAndMark(node, signals, innerSim.getOutput(innerSignals, i),
+                                     i, active);
             }
         }
     }
@@ -190,18 +222,25 @@ namespace Gateway {
         return change;
     }
 
-    bool ChipSim::prepareInput(int* signals, int* outerSignals, ActiveStack& active, ChipSim &sim, int nodeId) {
+    bool ChipSim::prepareInput(int* signals, const int* outerSignals, ActiveStack& active, ChipSim &sim, int nodeId) {
         bool change = false;
+        int connectAddr = sim.nodes[nodeId].connectAddr;
         for(int i = 0; i < numInputs; i++) {
-            int& currentSignal = signals[i + 1];
-            int newSignal = getNodeInputSignal(outerSignals, nodeId, i);
-            if(newSignal != currentSignal) {
+            int newSignal = outerSignals[sim.connect[connectAddr + i]];
+            if(setOutputAndMark(nodes[i], signals, newSignal, 0, active))
                 change = true;
-                markConnectedComps(nodes[i], 0, active);
-                currentSignal = newSignal;
-            }
         }
         return change;
+    }
+
+    bool ChipSim::setOutputAndMark(Node &node, int* signals, int newSignal, int outputIdx, ActiveStack &active) {
+        int& currentSignal = signals[node.sigAddr + outputIdx];
+        if(newSignal != currentSignal) {
+            currentSignal = newSignal;
+            markConnectedComps(node, outputIdx, active);
+            return true;
+        }
+        return false;
     }
 
     void ChipSim::markConnectedComps(Node& node, int outputIdx, ActiveStack active) {
@@ -211,8 +250,24 @@ namespace Gateway {
         }
     }
 
-    int ChipSim::getNodeInputSignal(int* signals, int id, int idx) {
-        return signals[connect[nodes[id].connectAddr + idx]];
+    //PUBLIC METHODS
+
+    void ChipSim::update(int* signals, ActiveStack &active, Circuit& circuit, int compId) {
+        bool change = prepareInput(signals, active, circuit, compId);
+        if(change) updateEventDriven(signals, active);
+    }
+
+    void ChipSim::update(int* signals, int* outerSignals, ActiveStack &active, ChipSim &sim, int nodeId) {
+        bool change = prepareInput(signals, outerSignals, active, sim, nodeId);
+        if(change) updateEventDriven(signals, active);
+    }
+
+    const std::vector<int> &ChipSim::getDefSignals() const {
+        return defSignals;
+    }
+
+    int ChipSim::getOutput(int* signals, int idx) {
+        return signals[outputAddrs[idx]];
     }
 
 } // Gateway
