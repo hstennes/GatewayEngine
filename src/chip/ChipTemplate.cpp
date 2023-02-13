@@ -6,9 +6,7 @@
 
 namespace Gateway {
 
-    ChipTemplate::ChipTemplate(Circuit& fullCircuit, std::vector<int>& subset) : sim(ChipSim(fullCircuit)){
-        fullCircuit.subset(&circuit, subset);
-    }
+    ChipTemplate::ChipTemplate(Circuit& circuit, int id) : sim(ChipSim(circuit)), id(id) { }
 
     const std::vector<int> &ChipTemplate::getDefSignals() const {
         return sim.getDefSignals();

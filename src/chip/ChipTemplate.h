@@ -20,7 +20,7 @@ namespace Gateway {
         int id;
 
     public:
-        ChipTemplate(Circuit& fullCircuit, std::vector<int>& subset);
+        ChipTemplate(Circuit& circuit, int id);
 
         [[nodiscard]] const std::vector<int> &getDefSignals() const;
 

@@ -6,9 +6,10 @@
 
 namespace Gateway {
 
-    int TemplateList::createTemplate(Circuit &fullCircuit, std::vector<int> &subset) {
-        templates.emplace_back(fullCircuit, subset);
-        return (int) templates.size() - 1;
+    int TemplateList::createTemplate(Circuit& circuit) {
+        int id = (int) templates.size();
+        templates.emplace_back(circuit, id);
+        return id;
     }
 
     ChipTemplate &TemplateList::getTemplate(int id) {

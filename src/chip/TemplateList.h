@@ -16,7 +16,7 @@ namespace Gateway {
         std::vector<ChipTemplate> templates;
 
     public:
-        int createTemplate(Circuit& fullCircuit, std::vector<int>& subset);
+        int createTemplate(Circuit& circuit);
 
         ChipTemplate& getTemplate(int id);
     };

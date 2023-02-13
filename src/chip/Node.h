@@ -44,9 +44,7 @@ namespace Gateway {
 
         Node() = default;
 
-        Node(CompType type, int sigAddr, int connectAddr, uint8_t numInputs, uint8_t numOutputs, int data);
-
-        void updateEventDriven(int* signals, std::vector<int>& connect, ActiveStack& active);
+        Node(CompType type, int sigAddr, int connectAddr, uint8_t numInputs, uint8_t numOutputs);
     };
 
 } // Gateway

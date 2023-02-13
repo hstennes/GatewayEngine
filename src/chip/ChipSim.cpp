@@ -63,22 +63,21 @@ namespace Gateway {
                              std::unordered_map<int, int>& compToSig,
                              std::unordered_map<int, int>& compToConnect,
                              std::unordered_map<int, int>& compToNode) {
-        compToNode[comp.getId()] = nodeIdx;
-        nodeIdx += 1;
+        new (&nodes[nodeIdx]) Node(comp.getType(), sigIdx, connectIdx,
+                                   comp.getNumInputs(), comp.getNumOutputs());
 
         compToSig[comp.getId()] = sigIdx;
         sigIdx += (int) comp.getNumOutputs();
-        int data = 0;
         if(comp.getType() == CompType::CHIP) {
-            sigIdx += (int) comp.getData()->chipTemplate->getDefSignals().size();
-            data = comp.getData()->chipTemplate->getId();
+            ChipTemplate& chipTemplate = TEMPLATE_LIST.getTemplate(comp.getData()->getTemplateId());
+            sigIdx += (int) chipTemplate.getDefSignals().size();
+            nodes[nodeIdx].data = chipTemplate.getId();
         }
 
+        compToNode[comp.getId()] = nodeIdx;
+        nodeIdx += 1;
         compToConnect[comp.getId()] = connectIdx;
         connectIdx += calcConnectDataSize(circuit, comp);
-
-        new (&nodes[nodeIdx]) Node(comp.getType(), sigIdx, connectIdx,
-                                   comp.getNumInputs(), comp.getNumOutputs(), data);
     }
 
     void ChipSim::populateDataArrays(Component& comp, std::unordered_map<int, int>& compToSig,
@@ -118,12 +117,13 @@ namespace Gateway {
 
         if(comp.getType() == CompType::SPLITTER) {
             int* connectPtr = connect.data() + connectItr2;
-            std::vector<int>& split = comp.getData()->split;
+            const std::vector<int>& split = comp.getData()->getSplit();
             memcpy(connectPtr, split.data(), split.size() * sizeof(int));
         }
         else if(comp.getType() == CompType::CHIP) {
             int* connectPtr = connect.data() + connectItr2;
-            const std::vector<int>& innerDefSignals = comp.getData()->chipTemplate->getDefSignals();
+            const std::vector<int>& innerDefSignals =
+                    TEMPLATE_LIST.getTemplate(comp.getData()->getTemplateId()).getDefSignals();
             memcpy(connectPtr, innerDefSignals.data(), innerDefSignals.size() * sizeof(int));
         }
     }
@@ -138,7 +138,7 @@ namespace Gateway {
                 if(circuit.getComp(pin.getConnection(j)[0]).getType() != CompType::LIGHT) size++;
             }
         }
-        if(comp.getType() == CompType::SPLITTER) size += (int) comp.getData()->split.size();
+        if(comp.getType() == CompType::SPLITTER) size += (int) comp.getData()->getSplit().size();
         return size;
     }
 
