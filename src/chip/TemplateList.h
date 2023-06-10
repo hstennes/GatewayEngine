@@ -21,7 +21,7 @@ namespace Gateway {
         ChipTemplate& getTemplate(int id);
     };
 
-    inline static TemplateList TEMPLATE_LIST;
+    inline TemplateList TEMPLATE_LIST;
 
 }
 

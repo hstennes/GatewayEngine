@@ -42,7 +42,7 @@ int main() {
     int sw1a = mainCirc.addComp(CompType::SWITCH, 0, 0);
     int sw2a = mainCirc.addComp(CompType::SWITCH, 0, 0);
     int lt1a = mainCirc.addComp(CompType::LIGHT, 0, 0);
-    int lt2a = mainCirc.addComp(CompType::SWITCH, 0, 0);
+    int lt2a = mainCirc.addComp(CompType::LIGHT, 0, 0);
 
     mainCirc.getComp(chip).initChip(chipTemplate);
     mainCirc.connect(sw1a, 0, chip, 0);

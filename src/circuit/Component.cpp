@@ -18,9 +18,7 @@ namespace Gateway {
     void Component::initChip(int templateId) {
         data = new CompData();
         data->setTemplateId(templateId);
-        TemplateList list = TEMPLATE_LIST;
         ChipTemplate& chipTemplate = TEMPLATE_LIST.getTemplate(templateId);
-        std::cout << list.getTemplate(0).getSim().getDefSignals()[1] << std::endl;
         inputs.resize(chipTemplate.getNumInputs());
         outputs.resize(chipTemplate.getNumOutputs());
     }
