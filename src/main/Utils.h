@@ -11,7 +11,7 @@ namespace Gateway {
 
     namespace Utils {
         std::string CTYPE_STRS[] = {"AND", "OR", "XOR", "NOT", "NAND", "NOR", "XNOR",
-                                    "SWITCH", "LIGHT", "CHIP", "SPLITTER"};
+                                    "SWITCH", "LIGHT", "CHIP", "SPLIT_IN", "SPLIT_OUT"};
 
         std::array<int, 2> numInputsOutputs(CompType type) {
             switch(type) {
@@ -23,8 +23,8 @@ namespace Gateway {
                     return {0, 1};
                 case LIGHT:
                     return {1, 0};
-                case CHIP: case SPLITTER:
-                    return {-1, -1};
+                case CHIP: case SPLIT_IN: case SPLIT_OUT:
+                    return {0, 0};
             }
         }
     }

@@ -35,6 +35,7 @@ int main() {
     chipCirc.connect(xor1, 0, lt2, 0);
 
     int chipTemplate = TEMPLATE_LIST.createTemplate(chipCirc);
+    TemplateList stuff = TEMPLATE_LIST;
 
     Circuit mainCirc;
     int chip = mainCirc.addComp(CompType::CHIP, 0, 0);
@@ -43,7 +44,7 @@ int main() {
     int lt1a = mainCirc.addComp(CompType::LIGHT, 0, 0);
     int lt2a = mainCirc.addComp(CompType::SWITCH, 0, 0);
 
-    mainCirc.getComp(chip).getData()->setTemplateId(chipTemplate);
+    mainCirc.getComp(chip).initChip(chipTemplate);
     mainCirc.connect(sw1a, 0, chip, 0);
     mainCirc.connect(sw2a, 0, chip, 1);
     mainCirc.connect(chip, 0, lt1a, 0);

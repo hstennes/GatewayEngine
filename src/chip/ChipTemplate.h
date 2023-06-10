@@ -26,6 +26,10 @@ namespace Gateway {
 
         [[nodiscard]] ChipSim &getSim();
 
+        [[nodiscard]] int getNumInputs();
+
+        [[nodiscard]] int getNumOutputs();
+
         [[nodiscard]] int getId() const;
     };
 

@@ -12,6 +12,14 @@ namespace Gateway {
         return sim.getDefSignals();
     }
 
+    int ChipTemplate::getNumInputs() {
+        return circuit.getSwitches().size();
+    }
+
+    int ChipTemplate::getNumOutputs() {
+        return circuit.getLights().size();
+    }
+
     int ChipTemplate::getId() const {
         return id;
     }

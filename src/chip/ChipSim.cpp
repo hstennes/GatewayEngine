@@ -115,7 +115,7 @@ namespace Gateway {
             connect[connectItr1] = connectItr2 - connectIdx;
         }
 
-        if(comp.getType() == CompType::SPLITTER) {
+        if(comp.getType() == CompType::SPLIT_IN || comp.getType() == CompType::SPLIT_OUT) {
             int* connectPtr = connect.data() + connectItr2;
             const std::vector<int>& split = comp.getData()->getSplit();
             memcpy(connectPtr, split.data(), split.size() * sizeof(int));
@@ -138,7 +138,8 @@ namespace Gateway {
                 if(circuit.getComp(pin.getConnection(j)[0]).getType() != CompType::LIGHT) size++;
             }
         }
-        if(comp.getType() == CompType::SPLITTER) size += (int) comp.getData()->getSplit().size();
+        if(comp.getType() == CompType::SPLIT_IN || comp.getType() == CompType::SPLIT_OUT)
+            size += (int) comp.getData()->getSplit().size();
         return size;
     }
 

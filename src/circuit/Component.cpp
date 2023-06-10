@@ -2,8 +2,10 @@
 // Created by Hank Stennes on 1/15/23.
 //
 
+#include <iostream>
 #include "Component.h"
 #include "../main/Utils.h"
+#include "../chip/TemplateList.h"
 
 namespace Gateway {
 
@@ -11,6 +13,29 @@ namespace Gateway {
         std::array<int, 2> inputsOutputs = Utils::numInputsOutputs(type);
         inputs.resize(inputsOutputs[0]);
         outputs.resize(inputsOutputs[1]);
+    }
+
+    void Component::initChip(int templateId) {
+        data = new CompData();
+        data->setTemplateId(templateId);
+        TemplateList list = TEMPLATE_LIST;
+        ChipTemplate& chipTemplate = TEMPLATE_LIST.getTemplate(templateId);
+        std::cout << list.getTemplate(0).getSim().getDefSignals()[1] << std::endl;
+        inputs.resize(chipTemplate.getNumInputs());
+        outputs.resize(chipTemplate.getNumOutputs());
+    }
+
+    void Component::initSplitter(std::vector<int> &split) {
+        data = new CompData();
+        data->setSplit(split);
+        if(type == CompType::SPLIT_IN){
+            inputs.resize(split.size());
+            outputs.resize(1);
+        }
+        else {
+            inputs.resize(1);
+            outputs.resize((split.size()));
+        }
     }
 
     void Component::connectInput(int index, int id, int otherIdx) {

@@ -20,7 +20,8 @@ namespace Gateway {
         SWITCH,
         LIGHT,
         CHIP,
-        SPLITTER,
+        SPLIT_IN,
+        SPLIT_OUT
     };
 
 } // Gateway

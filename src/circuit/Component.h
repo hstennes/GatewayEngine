@@ -31,6 +31,10 @@ namespace Gateway {
     public:
         Component(CompType type, int id, int x, int y);
 
+        void initChip(int templateId);
+
+        void initSplitter(std::vector<int>& split);
+
         void connectInput(int index, int id, int otherIdx);
 
         void disconnectInput(int index);
